@@ -37,24 +37,42 @@ class Window extends JPanel implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             Character pac = gameBoard.getCharacters()[Visible.PACMAN - Visible.GHOST0];
-            if (anim_parity == 1) {
+            if (anim_parity == 0) {
                 pac.setCurrentImg(pacmanSolid);
-            } else {
+            } else if (anim_parity == 1) {
                 //triggers an image reset
                 pac.setDirection(pac.getDirection());
                 for (int i = Visible.GHOST0; i < Visible.PACMAN; i++) {
-                    gameBoard.getCharacters()[i - Visible.GHOST0].setDirection((int)(4*Math.random()));
+                    Character currGhost = gameBoard.getCharacters()[i - Visible.GHOST0];
+                    currGhost.setDirection(BotAI.getMove(currGhost, gameBoard));
                 }
                 gameBoard.tick();
-                if (gameBoard.isLost()) {
-                    Logger.log("You lost");
+                checkWinLose();
+            } else if (anim_parity == 2) {
+                pac.setCurrentImg(pacmanSolid);
+                gameBoard.move(gameBoard.getCharacters()[Visible.PACMAN - Visible.GHOST0]);
+                checkWinLose();
+            } else if (anim_parity == 3) {
+                //triggers an image reset
+                pac.setDirection(pac.getDirection());
+                for (int i = Visible.GHOST0; i < Visible.PACMAN; i++) {
+                    Character currGhost = gameBoard.getCharacters()[i - Visible.GHOST0];
+                    currGhost.setDirection(BotAI.getMove(currGhost, gameBoard));
                 }
-                if (gameBoard.isWon()) {
-                    Logger.log("You win!");
-                }
+                gameBoard.tick();
+                checkWinLose();
             }
-            anim_parity = 1 - anim_parity;
+            anim_parity = (anim_parity + 1) % 4;
             repaint();
+        }
+    }
+
+    private void checkWinLose() {
+        if (gameBoard.isLost()) {
+            Logger.log("You lost");
+        }
+        if (gameBoard.isWon()) {
+            Logger.log("You win!");
         }
     }
 
@@ -95,7 +113,7 @@ class Window extends JPanel implements ActionListener {
 
         g2d.setFont(new Font("Helvetica", Font.BOLD, 14));
         g2d.setColor(new Color(96, 128, 255));
-        g2d.drawString("Score: " + gameBoard.getScore(), 17, 34);
+        g2d.drawString("Score: " + gameBoard.getScore(), 27, 54);
     }
 
     @Override
