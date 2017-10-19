@@ -4,15 +4,24 @@ public class Move {
     int direction;
     int score;
     int originatingDirection;
+    int displacement;
     Board on;
 
-    public Move(int startRow, int startCol, int direction, int score, int originatingDirection, Board b) {
+    public Move(int startRow, int startCol, int direction, int score, int originatingDirection, Board b, int displacement) {
         this.startRow = startRow;
         this.startCol = startCol;
         this.direction = direction;
         this.score = score;
         this.originatingDirection = originatingDirection;
+        this.displacement = displacement + 1;
         on = b;
+    }
+
+    /**
+     * @return the displacement
+     */
+    public int getDisplacement() {
+        return displacement;
     }
 
     /**

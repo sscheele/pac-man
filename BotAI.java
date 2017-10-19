@@ -9,17 +9,17 @@ class BotAI {
         boolean[][] marked = new boolean[b.getHeight()][b.getWidth()];
         marked[c1.getRow()][c1.getCol()] = true;
 
-        PriorityQueue<Move> validMoves = new PriorityQueue<>((Move one, Move two) -> one.getScore() - two.getScore());
+        PriorityQueue<Move> validMoves = new PriorityQueue<>((Move one, Move two) -> one.getDisplacement() + one.getScore() - two.getDisplacement() - two.getScore());
         for (int i = -1; i < 2; i += 2) {
             if (b.getAt(Math.floorMod(c1.getRow() + i, b.getHeight()), c1.getCol()) != Visible.WALL) {
                 int dir = i == -1 ? Character.Moves.UP : Character.Moves.DOWN;
                 validMoves.add(new Move(c1.getRow(), c1.getCol(), dir,
-                        AIHelpers.distance(c1.getRow() + i, c1.getCol(), c2.getRow(), c2.getCol()), dir, b));
+                AIHelpers.distance(c1.getRow() + i, c1.getCol(), c2.getRow(), c2.getCol()), dir, b, 0));
             }
             if (b.getAt(c1.getRow(), Math.floorMod(c1.getCol() + i, b.getHeight())) != Visible.WALL) {
                 int dir = i == -1 ? Character.Moves.LEFT : Character.Moves.RIGHT;
                 validMoves.add(new Move(c1.getRow(), c1.getCol(), dir,
-                        AIHelpers.distance(c1.getRow(), c1.getCol() + i, c2.getRow(), c2.getCol()), dir, b));
+                        AIHelpers.distance(c1.getRow(), c1.getCol() + i, c2.getRow(), c2.getCol()), dir, b, 0));
             }
         }
         while (!validMoves.isEmpty()) {
@@ -38,13 +38,13 @@ class BotAI {
                     int dir = i == -1 ? Character.Moves.UP : Character.Moves.DOWN;
                     validMoves.add(new Move(endRow, endCol, dir,
                             AIHelpers.distance(endRow + i, endCol, c2.getRow(), c2.getCol()),
-                            next.getOriginatingDirection(), b));
+                            next.getOriginatingDirection(), b, next.getDisplacement()));
                 }
                 if (b.getAt(endRow, Math.floorMod(endCol + i, b.getWidth())) != Visible.WALL) {
                     int dir = i == -1 ? Character.Moves.LEFT : Character.Moves.RIGHT;
                     validMoves.add(new Move(endRow, endCol, dir,
                             AIHelpers.distance(endRow, endCol + i, c2.getRow(), c2.getCol()),
-                            next.getOriginatingDirection(), b));
+                            next.getOriginatingDirection(), b, next.getDisplacement()));
                 }
             }
         }
