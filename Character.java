@@ -9,7 +9,6 @@ public class Character {
     int col;
     int id;
     int direction;
-    int onTopOf;
     private static ImageIcon sprites = new ImageIcon("res/img/sprites.png");
     Image currentImg;
     Image[] directionalImages;
@@ -21,11 +20,20 @@ public class Character {
         public static final int DOWN = 3;
     }
 
+    public Character(Character c) {
+        row = c.getRow();
+        col = c.getCol();
+        id = c.getId();
+        //deliberately using the same pointers here to save memory
+        directionalImages = c.getDirectionalImages();
+        currentImg = c.getImage();
+        direction = c.getDirection();
+    }
+
     public Character(int row, int col, int id) {
         this.row = row;
         this.col = col;
         this.id = id;
-        onTopOf = -1;
         directionalImages = new Image[4];
         BufferedImage baseSprites = new BufferedImage(sprites.getIconWidth(), sprites.getIconHeight(),
                 BufferedImage.TYPE_INT_RGB);
@@ -45,24 +53,6 @@ public class Character {
         }
         currentImg = directionalImages[0];
         direction = 0;
-    }
-
-    /**
-     * @return the onTopOf
-     */
-    public int getOnTopOf() {
-        return onTopOf;
-    }
-
-    /**
-     * @param onTopOf the onTopOf to set
-     */
-    public void setOnTopOf(int onTopOf) {
-        if (onTopOf < Visible.GHOST0 || onTopOf > Visible.PACMAN){
-            this.onTopOf = onTopOf;
-        } else {
-            this.onTopOf = -1;
-        }
     }
 
     /**
@@ -98,6 +88,10 @@ public class Character {
      */
     public Image getImage() {
         return currentImg;
+    }
+
+    public Image[] getDirectionalImages() {
+        return directionalImages;
     }
 
     /**

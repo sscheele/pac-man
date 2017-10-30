@@ -23,7 +23,8 @@ class Window extends JPanel implements ActionListener {
     private Image dotImg = new ImageIcon("res/img/dot.png").getImage();
     private Image pacmanSolid = new ImageIcon("res/img/pacman_solid.png").getImage();
     private final int TILE_SIZE = 30;
-    private final int ANIM_DELAY = 100;
+    private final int ANIM_DELAY = 75;
+
     private int anim_parity = 0;
 
     public Window() {
@@ -37,32 +38,25 @@ class Window extends JPanel implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             Character pac = gameBoard.getCharacters()[Visible.PACMAN - Visible.GHOST0];
-            if (anim_parity == 0) {
+            if (anim_parity % 2 == 0) {
                 pac.setCurrentImg(pacmanSolid);
-            } else if (anim_parity == 1) {
+            } else {
                 //triggers an image reset
                 pac.setDirection(pac.getDirection());
-                for (int i = Visible.GHOST0; i < Visible.PACMAN; i++) {
-                    Character currGhost = gameBoard.getCharacters()[i - Visible.GHOST0];
-                    currGhost.setDirection(BotAI.getMove(currGhost, gameBoard));
-                }
-                gameBoard.tick();
-                checkWinLose();
-            } else if (anim_parity == 2) {
-                pac.setCurrentImg(pacmanSolid);
-                gameBoard.move(gameBoard.getCharacters()[Visible.PACMAN - Visible.GHOST0]);
-                checkWinLose();
-            } else if (anim_parity == 3) {
-                //triggers an image reset
-                pac.setDirection(pac.getDirection());
-                for (int i = Visible.GHOST0; i < Visible.PACMAN; i++) {
-                    Character currGhost = gameBoard.getCharacters()[i - Visible.GHOST0];
-                    currGhost.setDirection(BotAI.getMove(currGhost, gameBoard));
-                }
-                gameBoard.tick();
-                checkWinLose();
             }
-            anim_parity = (anim_parity + 1) % 4;
+            if (anim_parity % Board.PAC_DELAY == 0) {
+                gameBoard.move(pac);
+            }
+            if (anim_parity % Board.GHOST_DELAY == 0) {
+                for (int i = Visible.GHOST0; i < Visible.PACMAN; i++) {
+                    Character currGhost = gameBoard.getCharacters()[i - Visible.GHOST0];
+                    currGhost.setDirection(BotAI.getMove(currGhost, gameBoard));
+                    //currGhost.setDirection(BotAI.getMove(currGhost, gameBoard, anim_parity));
+                    gameBoard.move(currGhost);
+                }
+            }
+            checkWinLose();
+            anim_parity = (anim_parity + 1) % Board.NUM_FRAMES;
             repaint();
         }
     }
@@ -100,14 +94,16 @@ class Window extends JPanel implements ActionListener {
                 int currItem = gameBoard.getAt(r, c);
                 if (currItem == -1)
                     continue;
-                if (currItem <= Visible.PACMAN && currItem >= Visible.GHOST0) {
-                    g2d.drawImage(gameBoard.getCharacters()[currItem - Visible.GHOST0].getImage(), TILE_SIZE * c,
-                            TILE_SIZE * r, TILE_SIZE, TILE_SIZE, Color.black, null);
-                } else if (currItem == Visible.WALL) {
+                if (currItem == Visible.WALL) {
                     g2d.drawImage(wallImg, TILE_SIZE * c, TILE_SIZE * r, TILE_SIZE, TILE_SIZE, Color.black, null);
                 } else if (currItem == Visible.DOT) {
                     g2d.drawImage(dotImg, TILE_SIZE * c, TILE_SIZE * r, TILE_SIZE, TILE_SIZE, Color.black, null);
                 }
+            }
+        }
+        for (Character c : gameBoard.getCharacters()) {
+            if (c != null) {
+                g2d.drawImage(c.getImage(), TILE_SIZE * c.getCol(), TILE_SIZE * c.getRow(), TILE_SIZE, TILE_SIZE, Color.black, null);                
             }
         }
 

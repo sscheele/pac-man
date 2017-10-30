@@ -1,0 +1,2 @@
+Remove characters from board array - paint them from character array. This way, characters can go on top of things (incl. one another) without problems.
+Use rays in the heuristic algorithm (minimax)

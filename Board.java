@@ -8,6 +8,11 @@ class Board {
     private Character[] characters;
     private int score;
 
+    public static final int PAC_DELAY = 2;
+    public static final int GHOST_DELAY = 3;
+    public static final int CHOMP_DELAY = 2;
+    public static final int NUM_FRAMES = PAC_DELAY * GHOST_DELAY * CHOMP_DELAY;
+
     public Board(String filename) {
         characters = new Character[4];
         score = 0;
@@ -39,9 +44,11 @@ class Board {
                     if (code < -1 || code > Visible.DOT) {
                         Logger.log("Couldn't parse character: " + c);
                     } else {
-                        backingArray[currentLine - 1][currentIndex] = code;
                         if (code <= Visible.PACMAN && code >= Visible.GHOST0) {
                             characters[code - Visible.GHOST0] = new Character(currentLine - 1, currentIndex, code);
+                            backingArray[currentLine - 1][currentIndex] = -1;
+                        } else {
+                            backingArray[currentLine - 1][currentIndex] = code;
                         }
                         currentIndex++;
                     }
@@ -53,11 +60,43 @@ class Board {
         }
     }
 
+    public Board(Board b) {
+        height = b.getHeight();
+        width = b.getWidth();
+        backingArray = new int[height][width];
+        for (int r = 0; r < height; r++) {
+            for (int c = 0; c < width; c++) {
+                backingArray[r][c] = b.getBackingArray()[r][c];
+            }
+        }
+        characters = new Character[4];
+        for (int i = 0; i < characters.length; i++) {
+            characters[i] = new Character(b.getCharacters()[i]);
+        }
+        score = b.getScore();
+    }
+
+    public Board after(int charIndex, int direction) {
+        Board retVal = new Board(this);
+        retVal.getCharacters()[charIndex].setDirection(direction);
+        retVal.move(retVal.getCharacters()[charIndex]);
+        return retVal;
+    }
+
     /**
      * @return the score
      */
     public int getScore() {
         return score;
+    }
+
+    public boolean ghostAt(int r, int c) {
+        for (int i = 0; i < characters.length - 1; i++) {
+            if (characters[i].getRow() == r && characters[i].getCol() == c) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -121,6 +160,13 @@ class Board {
         return true;
     }
 
+    /**
+     * @param score the score to set
+     */
+    public void setScore(int score) {
+        this.score = score;
+    }
+
     public void tick() {
         for (Character c : characters) {
             move(c);
@@ -129,61 +175,39 @@ class Board {
 
     public void move(Character c) {
         int newLocation;
-        int oldData = Integer.MAX_VALUE;
+
+        if (c.getId() == Visible.PACMAN) {
+            if (backingArray[c.getRow()][c.getCol()] == Visible.DOT) {
+                score++;
+            }
+            backingArray[c.getRow()][c.getCol()] = -1;
+        }
+
         switch (c.getDirection()) {
         case Character.Moves.RIGHT:
             newLocation = (c.getCol() + 1) % width;
             if (getAt(c.getRow(), newLocation) != Visible.WALL) {
-                if (c.getId() == Visible.PACMAN) {
-                    backingArray[c.getRow()][c.getCol()] = -1;
-                } else {
-                    backingArray[c.getRow()][c.getCol()] = c.getOnTopOf();
-                }
                 c.setCol(newLocation);
-                oldData = setAt(c.getRow(), newLocation, c.getId());
             }
             break;
         case Character.Moves.UP:
             newLocation = Math.floorMod(c.getRow() - 1, height);
             if (getAt(newLocation, c.getCol()) != Visible.WALL) {
-                if (c.getId() == Visible.PACMAN) {
-                    backingArray[c.getRow()][c.getCol()] = -1;
-                } else {
-                    backingArray[c.getRow()][c.getCol()] = c.getOnTopOf();
-                }
                 c.setRow(newLocation);
-                oldData = setAt(newLocation, c.getCol(), c.getId());
             }
             break;
         case Character.Moves.DOWN:
             newLocation = (c.getRow() + 1) % height;
             if (getAt(newLocation, c.getCol()) != Visible.WALL) {
-                if (c.getId() == Visible.PACMAN) {
-                    backingArray[c.getRow()][c.getCol()] = -1;
-                } else {
-                    backingArray[c.getRow()][c.getCol()] = c.getOnTopOf();
-                }
                 c.setRow(newLocation);
-                oldData = setAt(newLocation, c.getCol(), c.getId());
             }
             break;
         case Character.Moves.LEFT:
             newLocation = Math.floorMod(c.getCol() - 1, width);
             if (getAt(c.getRow(), newLocation) != Visible.WALL) {
-                if (c.getId() == Visible.PACMAN) {
-                    backingArray[c.getRow()][c.getCol()] = -1;
-                } else {
-                    backingArray[c.getRow()][c.getCol()] = c.getOnTopOf();
-                }
                 c.setCol(newLocation);
-                oldData = setAt(c.getRow(), newLocation, c.getId());
             }
             break;
         }
-        if (c.getId() == Visible.PACMAN && oldData == Visible.DOT) {
-            score++;
-        }
-        if (oldData != Integer.MAX_VALUE)
-            c.setOnTopOf(oldData);
     }
 }
